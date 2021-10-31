@@ -13,7 +13,7 @@
 #include "pcap.h"
 #include "shared.h"
 
-#define BUFFER_SIZE 128
+//#define BUFFER_SIZE 128
 
 int main() {
 	int sockfd;
@@ -73,6 +73,9 @@ int main() {
 
 	uint32_t network = htonl(net_addr.s_addr & mask_addr.s_addr);
 
+
+	printf("Sending ICMP Echo Request to all the other subnet IP address...\n");
+
 	/* Send ICMP Echo request to all the other subnet IP addresses */
 	for(unsigned i = hoststart; i < hostend; i++) {
 		// TODO: Reset timer before send the request
@@ -91,27 +94,26 @@ int main() {
 		fill_icmphdr(&icmp_hdr);
 		packet->icmp_hdr = icmp_hdr;
 
-		// BUG: Fill the data
-
+		// Fill the data
 		char student_id[] = "M103040046";
 		strncpy(packet->data, student_id, 10);
 		
+		// Send ICMP Echo request
 		if(sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0)
 		{
 			perror("sendto");
 			exit(1);
 		}
+
+		// Receive ICMP Echo replay
+		if (pcap_get_reply() < 0) {
+			free(packet);
+			continue;
+		}
+
 		free(packet);
 		
 	}
-
-	/*
-	// allow socket to send datagrams to broadcast address
-	if(setsockopt( sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) < 0)
-	{
-		perror("setsockopt");
-		exit(1);
-	}*/
 	
 	close(sockfd);
 

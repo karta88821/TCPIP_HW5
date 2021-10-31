@@ -1,5 +1,6 @@
 #include "pcap.h"
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <pcap/pcap.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -55,12 +56,11 @@ void pcap_init(int timeout)
 	
 	addr.s_addr = mask_raw;
 	strcpy(mask, inet_ntoa(addr));
-	//printf("Mask: %s", mask);
+	
 	if(mask == NULL){
 		perror("inet_ntoa");
 		exit(1);
 	}
-	
 	
 	p = pcap_open_live(device, 8000, 1, timeout, errbuf);
 	if(!p){
@@ -79,20 +79,51 @@ void pcap_init(int timeout)
 	}
 }
 
-/*
-int pcap_get_reply( void )
-{
-	const u_char *ptr;
+int pcap_get_reply(void) {
 
-	ptr = pcap_next(p, &hdr);
+	const u_char *packet_content;
+	packet_content = pcap_next(p, &hdr);
+
+	if (packet_content == NULL) {
+		printf("Didn't grab the packet\n");
+	}
 	
-	
-	 * google "pcap_next" to get more information
-	 * and check the packet that ptr pointed to.
-	
-	
-	
-	
+	printf("Grabbed packet of length %d\n", hdr.len);
+
+	u_int eth_len = sizeof(struct ether_header);
+	u_int ip_len = sizeof(struct ether_header);
+
+	struct ip *ip_hdr;
+	ip_hdr = (struct ip*)(packet_content + eth_len);
+
+	if (ip_hdr->ip_dst.s_addr != inet_addr(net)) {
+		return -1;
+	}
+
+	char src[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(ip_hdr->ip_src.s_addr), src, INET_ADDRSTRLEN);
+
+	if (ip_hdr->ip_p != IPPROTO_ICMP) {
+		return -1;
+	}
+
+	struct icmphdr *icmp_hdr;
+	icmp_hdr = (struct icmphdr*)(packet_content + eth_len + ip_len);
+
+	if (icmp_hdr->type != ICMP_ECHOREPLY) {
+		return -1;
+	}
+
+	if (icmp_hdr->un.echo.id != htons(pid)) {
+		return -1;
+	}
+
+	if (icmp_hdr->un.echo.sequence != seq) {
+		return -1;
+	}
+
+	printf("ICMP Echo replay, the source IP address is: %s", src);
+
 	return 0;
 }
-*/
+
