@@ -13,7 +13,7 @@
 
 #define FILTER_STRING_SIZE 100
 
-void pcap_init( const char* dst_ip, int timeout );
+void pcap_init(int timeout );
 
 int pcap_get_reply( void );
 

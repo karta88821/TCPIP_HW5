@@ -4,7 +4,7 @@ TARGETS = scanner
  
 all: $(TARGETS)
 
-scanner: main.o fill_packet.o pcap.o
+scanner: scanner.o fill_packet.o pcap.o shared.o -lpcap
 
 clean: 
 	rm -f *.o	
