@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
 	
 	pid = getpid();
 	struct sockaddr_in dst;
-	bzero(&remoteAddr, sizeof(remoteAddr));
-	remoteAddr.sin_family = AF_INET;
+	bzero(&dst, sizeof(dst));
+	dst.sin_family = AF_INET;
 	myicmp *packet = (myicmp*)malloc(PACKET_SIZE);
 	int count = DEFAULT_SEND_COUNT;
 	int timeout = DEFAULT_TIMEOUT;
@@ -46,6 +46,7 @@ int main(int argc, char* argv[])
 	 */
 	//pcap_init( target_ip , timeout);
 
+	char icmpRequestBuffer[BUFFER_SIZE], replyBuffer[BUFFER_SIZE];  // ICMP request 和 收到的IP封包
 
 	/* 建立ICMP Request(Echo message) */
     struct icmp *icmpRequest = (struct icmp *) icmpRequestBuffer;
