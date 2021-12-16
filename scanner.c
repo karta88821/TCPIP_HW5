@@ -51,7 +51,14 @@ int main() {
 	*/
 	if(setsockopt( sockfd, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0)
 	{
-		perror("setsockopt");
+		perror("setsockopt(IP_HDRINCL)");
+		exit(1);
+	}
+
+	int val = 1;
+
+	if (setsockopt(sd, IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val)) < 0) {
+		perror("setsockopt(IP_DONTFRAG)");
 		exit(1);
 	}
 
@@ -72,7 +79,6 @@ int main() {
 	unsigned long hostend = (1<<(32-numbits)) - 1;
 
 	uint32_t network = htonl(net_addr.s_addr & mask_addr.s_addr);
-
 
 	printf("Sending ICMP Echo Request to all the other subnet IP address...\n");
 
@@ -112,7 +118,6 @@ int main() {
 		}
 
 		free(packet);
-		
 	}
 	
 	close(sockfd);

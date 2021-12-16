@@ -10,7 +10,7 @@
 
 extern u16 icmp_req;
 
-//static const char* dev = "enp0s3";
+static const char* dev = "enp0s3";
 
 static char filter_string[FILTER_STRING_SIZE] = "icmp";
 
@@ -23,7 +23,7 @@ static struct pcap_pkthdr hdr;
  */
 void pcap_init(int timeout)
 {	
-	char *device;
+	//char *device;
 	int ret;
 	char errbuf[PCAP_ERRBUF_SIZE];
 	
@@ -34,13 +34,15 @@ void pcap_init(int timeout)
 	
 	struct bpf_program fcode;
 
+	/*
 	device = pcap_lookupdev(errbuf);
 	if (device == NULL) {
 		fprintf(stderr,"%s\n",errbuf);
 		exit(1);
 	}
+	*/
 	
-	ret = pcap_lookupnet(device, &net_raw, &mask_raw, errbuf);
+	ret = pcap_lookupnet(dev, &net_raw, &mask_raw, errbuf);
 	if(ret == -1){
 		fprintf(stderr,"%s\n",errbuf);
 		exit(1);
@@ -62,7 +64,7 @@ void pcap_init(int timeout)
 		exit(1);
 	}
 	
-	p = pcap_open_live(device, 8000, 1, timeout, errbuf);
+	p = pcap_open_live(dev, 8000, 1, timeout, errbuf);
 	if(!p){
 		fprintf(stderr,"%s\n",errbuf);
 		exit(1);
@@ -88,7 +90,7 @@ int pcap_get_reply(void) {
 		printf("Didn't grab the packet\n");
 	}
 	
-	printf("Grabbed packet of length %d\n", hdr.len);
+	printf("Grabbed packet of length %d, ", hdr.len);
 
 	u_int eth_len = sizeof(struct ether_header);
 	u_int ip_len = sizeof(struct ether_header);
@@ -96,12 +98,13 @@ int pcap_get_reply(void) {
 	struct ip *ip_hdr;
 	ip_hdr = (struct ip*)(packet_content + eth_len);
 
+	char src[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(ip_hdr->ip_src.s_addr), src, INET_ADDRSTRLEN);
+	printf("ip address is %s\n", src);
+
 	if (ip_hdr->ip_dst.s_addr != inet_addr(net)) {
 		return -1;
 	}
-
-	char src[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(ip_hdr->ip_src.s_addr), src, INET_ADDRSTRLEN);
 
 	if (ip_hdr->ip_p != IPPROTO_ICMP) {
 		return -1;
