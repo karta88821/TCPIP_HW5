@@ -54,14 +54,7 @@ int main() {
 		perror("setsockopt(IP_HDRINCL)");
 		exit(1);
 	}
-
-	int val = 1;
-
-	if (setsockopt(sd, IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val)) < 0) {
-		perror("setsockopt(IP_DONTFRAG)");
-		exit(1);
-	}
-
+	
 	struct in_addr net_addr, mask_addr;
 	inet_aton(net, &(net_addr));
 	inet_aton(mask, &(mask_addr));
@@ -104,12 +97,16 @@ int main() {
 		char student_id[] = "M103040046";
 		strncpy(packet->data, student_id, 10);
 		
+		printf("Sending...");
+
 		// Send ICMP Echo request
 		if(sendto(sockfd, packet, PACKET_SIZE, 0, (struct sockaddr *)&dst, sizeof(dst)) < 0)
 		{
 			perror("sendto");
 			exit(1);
 		}
+
+		printf("Send success");
 
 		// Receive ICMP Echo replay
 		if (pcap_get_reply() < 0) {
