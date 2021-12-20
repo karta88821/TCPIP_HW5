@@ -10,7 +10,7 @@
 
 extern u16 icmp_req;
 
-static const char* dev = "enp0s3";
+static const char* dev = "eth0";
 
 static char filter_string[FILTER_STRING_SIZE] = "icmp";
 
